@@ -52,3 +52,61 @@ export interface BrowseFilters {
   areaMaxSqm?: number
   q?: string
 }
+
+// --- Owner-facing listing shapes (seller management) --------------------
+// These are DISTINCT from the public BrowseListing above: the owner view
+// exposes `status` and edit metadata, and never appears on the public API.
+
+/** Lifecycle statuses for a seller's own listing. */
+export type ListingStatus =
+  | 'draft'
+  | 'pending_payment'
+  | 'pending_verification'
+  | 'verified'
+  | 'rejected'
+  | 'sold'
+  | 'expired'
+
+/** Full listing shape returned to its owner (includes status). */
+export interface OwnerListing {
+  id: string
+  title: string
+  description: string
+  price: number
+  province: string
+  district: string
+  city: string
+  areaValue: number
+  areaUnit: AreaUnit
+  areaSqm: number
+  status: ListingStatus
+  createdAt: string
+  updatedAt: string
+}
+
+/** Body for POST /api/listings. */
+export interface CreateListingPayload {
+  title: string
+  description: string
+  price: number
+  province: string
+  district: string
+  city: string
+  areaValue: number
+  areaUnit: AreaUnit
+}
+
+/** Body for PATCH /api/listings/:id (draft only) — a partial of create. */
+export type UpdateListingPayload = Partial<CreateListingPayload>
+
+/** Payment record for a listing fee. */
+export interface Payment {
+  id: string
+  amount: number
+  currency: string
+  status: string
+  provider: string
+  transactionRef: string
+  paidAt: string | null
+  createdAt: string
+}

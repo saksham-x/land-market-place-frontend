@@ -59,6 +59,15 @@ async function onLogout(): Promise<void> {
 
         <!-- Logged in: dashboard link + avatar + logout -->
         <template v-else>
+          <!-- Sellers get a shortcut to their listing management. -->
+          <RouterLink
+            v-if="auth.role === 'seller'"
+            :to="{ name: 'seller-listings' }"
+            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+            active-class="text-brand-700"
+          >
+            My Listings
+          </RouterLink>
           <RouterLink
             :to="{ name: 'home' }"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"

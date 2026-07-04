@@ -46,6 +46,33 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
   },
+
+  // --- Seller listing management (seller-only) ---
+  {
+    path: '/seller/listings',
+    name: 'seller-listings',
+    component: () => import('@/views/MyListingsView.vue'),
+    meta: { requiresAuth: true, roles: ['seller'] },
+  },
+  {
+    // Static segment must precede the dynamic ':id' route below.
+    path: '/seller/listings/new',
+    name: 'seller-listing-new',
+    component: () => import('@/views/ListingFormView.vue'),
+    meta: { requiresAuth: true, roles: ['seller'] },
+  },
+  {
+    path: '/seller/listings/:id/edit',
+    name: 'seller-listing-edit',
+    component: () => import('@/views/ListingFormView.vue'),
+    meta: { requiresAuth: true, roles: ['seller'] },
+  },
+  {
+    path: '/seller/listings/:id',
+    name: 'seller-listing-manage',
+    component: () => import('@/views/ListingManageView.vue'),
+    meta: { requiresAuth: true, roles: ['seller'] },
+  },
   {
     path: '/login',
     name: 'login',
@@ -88,11 +115,13 @@ router.beforeEach((to) => {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // Role gate (used by later phases; harmless when `roles` is unset).
+  // Role gate: authenticated users whose role isn't allowed are sent to the
+  // public browse page. (User/role is loaded before the first guard runs; see
+  // main.ts, which awaits fetchMe on boot.)
   if (to.meta.requiresAuth && to.meta.roles?.length) {
     const role = auth.role
     if (!role || !to.meta.roles.includes(role)) {
-      return { name: 'home' }
+      return { name: 'browse' }
     }
   }
 

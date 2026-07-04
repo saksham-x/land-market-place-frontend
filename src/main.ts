@@ -10,16 +10,18 @@ const app = createApp(App)
 app.use(createPinia())
 app.use(router)
 
-// Rehydrate the user profile from a persisted token on app load. Fire-and-forget:
-// guards rely only on the token, and a stale/invalid token is cleared via the
-// axios 401 interceptor. We await the router so the first render is guard-ready.
-const auth = useAuthStore()
-if (auth.token) {
-  void auth.fetchMe().catch(() => {
-    /* handled by the 401 interceptor */
-  })
+// Rehydrate the user (and role) from a persisted token BEFORE the first
+// navigation guard runs, so role-gated routes resolve correctly on refresh /
+// deep-link. A stale/invalid token is cleared via the axios 401 interceptor.
+async function bootstrap(): Promise<void> {
+  const auth = useAuthStore()
+  if (auth.token) {
+    await auth.fetchMe().catch(() => {
+      /* invalid token — handled by the 401 interceptor */
+    })
+  }
+  await router.isReady()
+  app.mount('#app')
 }
 
-router.isReady().then(() => {
-  app.mount('#app')
-})
+void bootstrap()
