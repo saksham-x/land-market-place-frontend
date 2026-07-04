@@ -85,8 +85,12 @@ function validate(): boolean {
   else if (description.length < 10)
     clientErrors.description = 'Description must be at least 10 characters.'
 
-  const price = Number(form.price)
-  if (!form.price.trim()) clientErrors.price = 'Price is required.'
+  // Numeric fields: a number input can bind as either a string or a number, so
+  // coerce via String() (never call .trim() on a possible number) and validate
+  // the parsed result. An empty value fails cleanly as "required".
+  const priceStr = String(form.price ?? '').trim()
+  const price = Number(priceStr)
+  if (!priceStr) clientErrors.price = 'Price is required.'
   else if (!Number.isFinite(price) || price <= 0)
     clientErrors.price = 'Enter a price greater than 0.'
 
@@ -94,8 +98,9 @@ function validate(): boolean {
   if (!form.district.trim()) clientErrors.district = 'District is required.'
   if (!form.city.trim()) clientErrors.city = 'City is required.'
 
-  const area = Number(form.areaValue)
-  if (!form.areaValue.trim()) clientErrors.areaValue = 'Area is required.'
+  const areaStr = String(form.areaValue ?? '').trim()
+  const area = Number(areaStr)
+  if (!areaStr) clientErrors.areaValue = 'Area is required.'
   else if (!Number.isFinite(area) || area <= 0)
     clientErrors.areaValue = 'Enter an area greater than 0.'
 

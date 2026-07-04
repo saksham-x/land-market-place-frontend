@@ -23,7 +23,7 @@
 
     /* Types + path aliases */
     "types": ["node", "vite/client"],
-    "baseUrl": ".",
+    /* `paths` resolves relative to this tsconfig — no (now-deprecated) baseUrl needed. */
     "paths": {
       "@/*": ["./src/*"]
     }
