@@ -20,7 +20,28 @@ declare module 'vue-router' {
 
 const routes: RouteRecordRaw[] = [
   {
+    // Smart landing: guests → public browse, authed users → their dashboard.
     path: '/',
+    redirect: () => {
+      const auth = useAuthStore()
+      return auth.isAuthenticated ? { name: 'home' } : { name: 'browse' }
+    },
+  },
+  {
+    // Public browse — reachable whether logged in or out.
+    path: '/browse',
+    name: 'browse',
+    component: () => import('@/views/BrowseView.vue'),
+  },
+  {
+    // Public listing detail.
+    path: '/listings/:id',
+    name: 'listing-detail',
+    component: () => import('@/views/ListingDetailView.vue'),
+  },
+  {
+    // Authenticated dashboard/landing.
+    path: '/home',
     name: 'home',
     component: () => import('@/views/HomeView.vue'),
     meta: { requiresAuth: true },
@@ -37,10 +58,10 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/RegisterView.vue'),
     meta: { guestOnly: true },
   },
-  // Catch-all → home (which itself guards for auth).
+  // Catch-all → public browse.
   {
     path: '/:pathMatch(.*)*',
-    redirect: { name: 'home' },
+    redirect: { name: 'browse' },
   },
 ]
 

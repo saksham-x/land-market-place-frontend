@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import AppHeader from '@/components/AppHeader.vue'
 import BaseButton from '@/components/BaseButton.vue'
 
-const router = useRouter()
 const auth = useAuthStore()
 
 const loadingProfile = ref(false)
@@ -12,15 +12,6 @@ const loadingProfile = ref(false)
 const displayName = computed(
   () => auth.user?.fullName || auth.user?.email || 'there',
 )
-const initials = computed(() => {
-  const source = auth.user?.fullName || auth.user?.email || '?'
-  return source
-    .split(/\s+/)
-    .map((part) => part[0])
-    .slice(0, 2)
-    .join('')
-    .toUpperCase()
-})
 
 // If we only rehydrated a token (no user yet), fetch the profile now.
 onMounted(async () => {
@@ -33,33 +24,11 @@ onMounted(async () => {
     }
   }
 })
-
-async function onLogout(): Promise<void> {
-  auth.logout()
-  await router.replace({ name: 'login' })
-}
 </script>
 
 <template>
   <div class="min-h-full bg-gray-50">
-    <header class="border-b border-gray-100 bg-white">
-      <div
-        class="mx-auto flex max-w-5xl items-center justify-between px-4 py-4"
-      >
-        <span class="text-lg font-bold text-brand-700">Land Marketplace</span>
-        <div class="flex items-center gap-3">
-          <span
-            class="flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700"
-            aria-hidden="true"
-          >
-            {{ initials }}
-          </span>
-          <BaseButton variant="secondary" @click="onLogout">
-            Log out
-          </BaseButton>
-        </div>
-      </div>
-    </header>
+    <AppHeader />
 
     <main class="mx-auto max-w-5xl px-4 py-10">
       <div class="rounded-2xl border border-gray-100 bg-white p-8 shadow-sm">
@@ -96,9 +65,11 @@ async function onLogout(): Promise<void> {
             </div>
           </dl>
 
-          <p class="mt-8 text-sm text-gray-400">
-            Listings, browsing, and other features arrive in later phases.
-          </p>
+          <div class="mt-8">
+            <RouterLink :to="{ name: 'browse' }">
+              <BaseButton>Browse listings</BaseButton>
+            </RouterLink>
+          </div>
         </template>
       </div>
     </main>
