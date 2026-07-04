@@ -10,14 +10,16 @@ import {
   relistListing,
   deleteListing,
 } from '@/api/listings'
+import { getListingLeads } from '@/api/contact'
 import { useApiError, isNormalizedApiError } from '@/composables/useApiError'
-import type { OwnerListing, Payment } from '@/types'
+import type { Lead, OwnerListing, Payment } from '@/types'
 import { statusMeta } from '@/utils/listing'
 import { formatNpr, formatAreaFull, formatDate } from '@/utils/format'
 import AppHeader from '@/components/AppHeader.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import AlertBanner from '@/components/AlertBanner.vue'
 import StatusBadge from '@/components/StatusBadge.vue'
+import LeadCard from '@/components/LeadCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -34,6 +36,10 @@ const notFound = ref(false)
 const listing = ref<OwnerListing | null>(null)
 const payment = ref<Payment | null>(null)
 
+const leads = ref<Lead[]>([])
+const leadsLoading = ref(false)
+const leadsError = ref<string | null>(null)
+
 /** Which action is currently running (drives per-button spinners). */
 const runningAction = ref<string | null>(null)
 const busy = computed(() => runningAction.value !== null)
@@ -41,6 +47,27 @@ const busy = computed(() => runningAction.value !== null)
 const meta = computed(() =>
   listing.value ? statusMeta(listing.value.status) : null,
 )
+
+// Inquiries only exist for listings that have been publicly live at some point.
+const hasBeenLive = computed(
+  () =>
+    !!listing.value &&
+    ['verified', 'sold', 'expired'].includes(listing.value.status),
+)
+
+async function loadLeads(id: string): Promise<void> {
+  leadsLoading.value = true
+  leadsError.value = null
+  try {
+    leads.value = await getListingLeads(id)
+  } catch {
+    // Owner-gated endpoint; failure is non-fatal to the rest of the page.
+    leads.value = []
+    leadsError.value = 'Could not load inquiries.'
+  } finally {
+    leadsLoading.value = false
+  }
+}
 
 async function loadPayment(id: string): Promise<void> {
   try {
@@ -67,6 +94,11 @@ async function fetchListing(): Promise<void> {
       await loadPayment(id)
     } else {
       payment.value = null
+    }
+    if (['verified', 'sold', 'expired'].includes(result.status)) {
+      await loadLeads(id)
+    } else {
+      leads.value = []
     }
   } catch (err) {
     if (isNormalizedApiError(err) && err.status === 403) forbidden.value = true
@@ -427,6 +459,37 @@ async function onDelete(): Promise<void> {
                 Relist
               </BaseButton>
             </div>
+          </div>
+        </div>
+
+        <!-- Inquiries / leads (only for listings that have been publicly live) -->
+        <div
+          v-if="hasBeenLive"
+          class="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm"
+        >
+          <div class="flex items-center gap-2">
+            <h2 class="text-sm font-semibold uppercase tracking-wide text-gray-500">
+              Inquiries
+            </h2>
+            <span
+              v-if="!leadsLoading && leads.length"
+              class="inline-flex items-center rounded-full bg-brand-100 px-2 py-0.5 text-xs font-semibold text-brand-700"
+            >
+              {{ leads.length }}
+            </span>
+          </div>
+
+          <p v-if="leadsLoading" class="mt-3 text-sm text-gray-400">
+            Loading inquiries…
+          </p>
+          <p v-else-if="leadsError" class="mt-3 text-sm text-amber-600">
+            {{ leadsError }}
+          </p>
+          <p v-else-if="leads.length === 0" class="mt-3 text-sm text-gray-400">
+            No inquiries yet.
+          </p>
+          <div v-else class="mt-4 space-y-3">
+            <LeadCard v-for="lead in leads" :key="lead.id" :lead="lead" />
           </div>
         </div>
       </div>

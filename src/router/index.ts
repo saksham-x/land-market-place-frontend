@@ -55,6 +55,12 @@ const routes: RouteRecordRaw[] = [
     meta: { requiresAuth: true, roles: ['seller'] },
   },
   {
+    path: '/seller/leads',
+    name: 'seller-leads',
+    component: () => import('@/views/LeadsInboxView.vue'),
+    meta: { requiresAuth: true, roles: ['seller'] },
+  },
+  {
     // Static segment must precede the dynamic ':id' route below.
     path: '/seller/listings/new',
     name: 'seller-listing-new',

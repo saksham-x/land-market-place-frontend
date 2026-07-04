@@ -100,15 +100,23 @@ async function onLogout(): Promise<void> {
           >
             Browse
           </RouterLink>
-          <!-- Sellers get a shortcut to their listing management. -->
-          <RouterLink
-            v-if="auth.role === 'seller'"
-            :to="{ name: 'seller-listings' }"
-            class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
-            active-class="text-brand-700"
-          >
-            My Listings
-          </RouterLink>
+          <!-- Sellers get shortcuts to their listings and inquiries. -->
+          <template v-if="auth.role === 'seller'">
+            <RouterLink
+              :to="{ name: 'seller-listings' }"
+              class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+              active-class="text-brand-700"
+            >
+              My Listings
+            </RouterLink>
+            <RouterLink
+              :to="{ name: 'seller-leads' }"
+              class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"
+              active-class="text-brand-700"
+            >
+              Leads
+            </RouterLink>
+          </template>
           <RouterLink
             :to="{ name: 'home' }"
             class="rounded-lg px-3 py-2 text-sm font-medium text-gray-600 transition hover:bg-gray-100 hover:text-gray-900"

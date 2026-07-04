@@ -24,3 +24,9 @@ export type {
   VerificationDecision,
   VerificationRecord,
 } from './verification'
+export type {
+  SendInquiryPayload,
+  LeadBuyer,
+  Lead,
+  LeadWithListing,
+} from './contact'

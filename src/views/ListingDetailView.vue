@@ -2,16 +2,15 @@
 import { ref, watch } from 'vue'
 import { useRoute, RouterLink } from 'vue-router'
 import { getListing } from '@/api/browse'
-import { useAuthStore } from '@/stores/auth'
 import { useApiError, isNormalizedApiError } from '@/composables/useApiError'
 import type { BrowseListing } from '@/types'
 import { formatNpr, formatAreaFull, formatDate } from '@/utils/format'
 import AppHeader from '@/components/AppHeader.vue'
 import BaseButton from '@/components/BaseButton.vue'
 import AlertBanner from '@/components/AlertBanner.vue'
+import ContactSellerForm from '@/components/ContactSellerForm.vue'
 
 const route = useRoute()
-const auth = useAuthStore()
 const apiError = useApiError()
 
 const loading = ref(false)
@@ -46,10 +45,6 @@ watch(
   },
   { immediate: true },
 )
-
-// NOTE: The real "contact seller" flow (messaging / revealing contact details)
-// is a later phase. For now we only leave a clean seam: prompt guests to log
-// in, and show a disabled "coming soon" action for authenticated users.
 </script>
 
 <template>
@@ -187,21 +182,12 @@ watch(
             </dl>
           </section>
 
-          <!-- Contact seam (not wired yet — later phase) -->
+          <!-- Contact seller — real inquiry flow -->
           <div class="mt-8 border-t border-gray-100 pt-6">
-            <RouterLink
-              v-if="!auth.isAuthenticated"
-              :to="{ name: 'login', query: { redirect: route.fullPath } }"
-            >
-              <BaseButton>Log in to contact seller</BaseButton>
-            </RouterLink>
-            <BaseButton
-              v-else
-              disabled
-              title="Coming soon — the contact flow arrives in a later phase"
-            >
-              Contact seller (coming soon)
-            </BaseButton>
+            <ContactSellerForm
+              :listing-id="listing.id"
+              :seller-name="listing.sellerName"
+            />
           </div>
         </div>
       </article>
