@@ -18,3 +18,9 @@ export type {
   UpdateListingPayload,
   Payment,
 } from './listing'
+export type {
+  PendingListingSeller,
+  PendingListing,
+  VerificationDecision,
+  VerificationRecord,
+} from './verification'

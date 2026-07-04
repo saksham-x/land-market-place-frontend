@@ -73,6 +73,26 @@ const routes: RouteRecordRaw[] = [
     component: () => import('@/views/ListingManageView.vue'),
     meta: { requiresAuth: true, roles: ['seller'] },
   },
+  // --- Admin verification (admin-only) ---
+  {
+    // Distinct admin sign-in. Guest-accessible; the view redirects an already
+    // signed-in admin straight to the queue.
+    path: '/admin/login',
+    name: 'admin-login',
+    component: () => import('@/views/AdminLoginView.vue'),
+  },
+  {
+    path: '/admin/verifications',
+    name: 'admin-verifications',
+    component: () => import('@/views/VerificationQueueView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] },
+  },
+  {
+    path: '/admin/verifications/:listingId',
+    name: 'admin-verification-review',
+    component: () => import('@/views/VerificationReviewView.vue'),
+    meta: { requiresAuth: true, roles: ['admin'] },
+  },
   {
     path: '/login',
     name: 'login',
@@ -104,24 +124,29 @@ const router = createRouter({
 router.beforeEach((to) => {
   const auth = useAuthStore()
   const isAuthenticated = auth.isAuthenticated
+  // Admin area gets its own sign-in / not-authorized destination.
+  const isAdminArea = to.path.startsWith('/admin')
 
   // Guest-only routes (login/register): send authed users home.
   if (to.meta.guestOnly && isAuthenticated) {
     return { name: 'home' }
   }
 
-  // Protected routes: send anonymous users to login, remembering the target.
+  // Protected routes: send anonymous users to the right login, remembering dest.
   if (to.meta.requiresAuth && !isAuthenticated) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    return isAdminArea
+      ? { name: 'admin-login', query: { redirect: to.fullPath } }
+      : { name: 'login', query: { redirect: to.fullPath } }
   }
 
-  // Role gate: authenticated users whose role isn't allowed are sent to the
-  // public browse page. (User/role is loaded before the first guard runs; see
-  // main.ts, which awaits fetchMe on boot.)
+  // Role gate: authenticated users whose role isn't allowed are redirected.
+  // Admin routes bounce to the admin login; everything else to public browse.
+  // (User/role is loaded before the first guard runs; see main.ts, which awaits
+  // fetchMe on boot.)
   if (to.meta.requiresAuth && to.meta.roles?.length) {
     const role = auth.role
     if (!role || !to.meta.roles.includes(role)) {
-      return { name: 'browse' }
+      return isAdminArea ? { name: 'admin-login' } : { name: 'browse' }
     }
   }
 
