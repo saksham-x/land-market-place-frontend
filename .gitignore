@@ -26,3 +26,4 @@ dist-ssr
 # Env — keep .env.example, ignore real secrets
 .env.local
 .env.*.local
+.env
